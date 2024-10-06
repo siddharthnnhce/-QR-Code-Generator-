@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f06, #48f);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            animation: fadeIn 2s ease-in-out;
+        }
+
+        input {
+            padding: 15px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            margin: 10px 0;
+            width: 300px;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease;
+        }
+
+        input:focus {
+            transform: scale(1.05);
+            outline: none;
+            box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            background-color: #48f;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #37c;
+            transform: scale(1.05);
+        }
+
+        img {
+            display: none;
+            margin-top: 20px;
+            width: 200px;
+            height: 200px;
+            animation: fadeInUp 1s ease-in-out;
+            border: 5px solid white;
+            border-radius: 10px;
+        }
+
+        .footer-text {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .preview {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            width: 300px;
+            text-align: left;
+            opacity: 0.8;
+        }
+
+        .loading {
+            display: none;
+            margin-top: 15px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>QR Code Generator</h1>
+    <input type="text" id="urlInput" placeholder="Type in your URL" />
+    <button id="generateBtn">Generate QR Code</button>
+    <div class="preview">Preview: <span id="urlDisplay">Enter a URL</span></div>
+    <img id="qrCodeImg" src="" alt="QR Code"/>
+    <div class="loading" id="loadingAnimation">Generating QR Code...</div>
+    <div class="footer-text">Produced by Siddharth</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlInput = document.getElementById('urlInput');
+            const urlDisplay = document.getElementById('urlDisplay');
+            const qrCodeImg = document.getElementById('qrCodeImg');
+            const loadingAnimation = document.getElementById('loadingAnimation');
+
+            // Update URL preview on input
+            urlInput.addEventListener('input', () => {
+                urlDisplay.textContent = urlInput.value || 'Enter a URL';
+            });
+
+            // Generate QR Code on button click
+            document.getElementById('generateBtn').addEventListener('click', async () => {
+                const url = urlInput.value.trim();
+                if (!url) {
+                    alert('Please enter a valid URL.');
+                    return;
+                }
+
+                loadingAnimation.style.display = 'block';
+                qrCodeImg.style.display = 'none';
+
+                try {
+                    const response = await fetch('/generate-qr', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ URL: url }),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    const blob = await response.blob();
+                    const imgURL = URL.createObjectURL(blob);
+                    qrCodeImg.src = imgURL;
+                    qrCodeImg.style.display = 'block';
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error generating QR code. Please try again.');
+                } finally {
+                    loadingAnimation.style.display = 'none';
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
